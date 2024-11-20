@@ -600,7 +600,7 @@ app.post("/trade/room/user/new", (req, res) => {
                     uInfo.user_id = f.form[i].value;
                 }
                 else {
-                    const n = f.form[i].value;
+                    const n = f.form[i].name;
                     uInfo.offer[n] = f.form[i].value;
                 }
             }
@@ -610,12 +610,112 @@ app.post("/trade/room/user/new", (req, res) => {
         res.end();
     }));
 });
+app.post("/trade/room/user/form_updated", (req, res) => {
+    let body = "";
+    req.on("data", (chunk) => {
+        body += chunk;
+    });
+    req.on("end", () => __awaiter(void 0, void 0, void 0, function* () {
+        /**
+         * Parsed form
+         */
+        const f = (0, form_parser_1.FormParser)(body);
+        if (!f.value) {
+            res.writeHead(500, "Internal server error");
+            return res.end();
+        }
+        let newUserInfo = { offer: {} };
+        if (f.form) {
+            for (let i = 0; i < f.form.length; i++) {
+                const key = f.form[i].name;
+                const val = f.form[i].value;
+                if (key !== "room_id" && key !== "user_id" && key !== "index") {
+                    newUserInfo["offer"][key] = val;
+                }
+                else {
+                    newUserInfo[key] = val;
+                }
+            }
+        }
+        const db = mongo_1.mongoClient.db("lotus");
+        console.log(newUserInfo);
+        yield db.collection("trade_rooms").updateOne({ room_id: atob(newUserInfo.room_id) }, { $set: { [`active_users.${newUserInfo.index}.offer`]: newUserInfo.offer } });
+        res.end();
+    }));
+});
+app.post("/trade/room/user/leave", (req, res) => {
+    let body = "";
+    req.on("data", (chunk) => {
+        body += chunk;
+    });
+    req.on("end", () => __awaiter(void 0, void 0, void 0, function* () {
+        const jData = JSON.parse(body);
+        jData.room_id = atob(jData.room_id);
+        const db = mongo_1.mongoClient.db("lotus");
+        const oldArr = yield db.collection("trade_rooms").findOne({ room_id: jData.room_id });
+        if (oldArr) {
+            const uIdx = oldArr.active_users.findIndex((val) => val.user_id === jData.user_id);
+            if (uIdx > -1) {
+                oldArr.active_users.splice(uIdx, 1);
+                yield db.collection("trade_rooms").updateOne({ room_id: jData.room_id }, { $set: { active_users: oldArr.active_users } });
+                console.log("The dependent offer was deleted!");
+            }
+            console.log("A user have just left the room.");
+        }
+        res.writeHead(302, {
+            "location": "/participant",
+        });
+        res.end();
+    }));
+});
+app.post("/trade/room/user/move", (req, res) => {
+    let body = "";
+    let newMove = 0;
+    req.on("data", (chunk) => {
+        body += chunk;
+    });
+    req.on("end", () => __awaiter(void 0, void 0, void 0, function* () {
+        const jData = JSON.parse(body);
+        jData.room_id = atob(jData.room_id);
+        const db = mongo_1.mongoClient.db("lotus");
+        const room = yield db.collection("trade_rooms").findOne({ room_id: jData.room_id });
+        if (room) {
+            if (jData.move_idx + 1 > room.active_users.length) {
+                newMove = 0;
+            }
+            else {
+                newMove = jData.move_idx;
+            }
+        }
+        yield db.collection("trade_rooms").updateOne({ room_id: jData.room_id }, { $set: { move_idx: newMove } });
+        console.log(`New move: ${newMove}`);
+        res.json({ move_idx: newMove });
+    }));
+});
+app.post("/trade/room/user/index", (req, res) => {
+    let body = "";
+    req.on("data", (chunk) => {
+        body += chunk;
+    });
+    req.on("end", () => __awaiter(void 0, void 0, void 0, function* () {
+        const jData = JSON.parse(body);
+        jData.room_id = atob(jData.room_id);
+        const db = mongo_1.mongoClient.db("lotus");
+        const room = yield db.collection("trade_rooms").findOne({ room_id: jData.room_id });
+        let uIdx = 0;
+        if (room) {
+            uIdx = room.active_users.findIndex((val) => val.user_id === jData.user_id);
+        }
+        res.json({ user_index: uIdx });
+    }));
+});
 //////////////////////////////////////////////
 // APPLICATION END 
 //////////////////////////////////////////////
 //////////////////////////////////////////////
 // SOCKET.IO START
 //////////////////////////////////////////////
+let timerIsRunning = false;
 ioServer.on("connection", (socket) => {
     socket.on("msg", (msg) => {
         console.log(msg);
@@ -626,7 +726,66 @@ ioServer.on("connection", (socket) => {
     });
     socket.on("room_join_req", (data) => {
         console.log(data);
-        socket.broadcast.to(data.room_id).emit("connect_new_user", data.user_id);
+        ioServer.to(data.room_id).emit("connect_new_user", data.user_id);
+    });
+    socket.on("user_leaves_req", (data) => {
+        console.log(data);
+        ioServer.to(data.room_id).emit("user_leaves_evt", data.user_id);
+    });
+    socket.on("user_changes_offer_req", (data) => {
+        console.log(data);
+        ioServer.to(data.room_id).emit("user_changes_offer_evt", data.user_id);
+    });
+    socket.on("user_make_move_req", (data, moveIdx, socket_id) => {
+        console.log(`Move idx: ${moveIdx}\nSocket id: ${socket_id}`);
+        const request = http_1.default.request({
+            method: "POST",
+            host: "127.0.0.1",
+            port: 3000,
+            path: "/trade/room/user/move",
+            headers: {
+                "content-type": "application/json",
+            },
+        }, (res) => {
+            let body = "";
+            res.on("data", (chunk) => {
+                body += chunk;
+            });
+            res.on("end", () => {
+                const jData = JSON.parse(body);
+                console.log(jData);
+                ioServer.to(data.room_id).emit("user_make_move_evt", jData);
+            });
+        });
+        request.write(JSON.stringify({
+            room_id: data.room_id,
+            user_id: data.user_id,
+            move_idx: ++moveIdx,
+        }));
+        request.end();
+    });
+    socket.on("trade_room_timer_start", (data, time, socket_id) => {
+        let socketTimer = time;
+        console.log(socket_id);
+        const resInterval = setInterval(() => {
+            if (!socketTimer) {
+                const skSet = ioServer.sockets.adapter.rooms.get(data.room_id);
+                console.log("Set:", skSet);
+                const skList = [];
+                for (const val of skSet) {
+                    skList.push(val);
+                }
+                console.log(skList);
+                let skNextIdx = skList.findIndex((val) => val === socket_id);
+                skNextIdx = skNextIdx + 1 > skList.length - 1 ? 0 : skNextIdx + 1;
+                console.log("Found index: ", skNextIdx);
+                ioServer.emit("trade_room_timer_end", data, skList[skNextIdx]);
+                clearInterval(resInterval);
+            }
+            ioServer.to(data.room_id).emit("trade_room_timer_res", socketTimer);
+            --socketTimer;
+            console.log(socketTimer);
+        }, 1000);
     });
 });
 //////////////////////////////////////////////

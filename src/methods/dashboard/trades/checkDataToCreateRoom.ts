@@ -15,6 +15,7 @@ export const checkDataToCreateRoom = (form: SimpleFormValue[]) => {
     room_id: uuidv4(), 
     status: false,
     active_users: [],
+    move_idx: 0,
   };
 
   for (let idx = 0; idx < form.length; idx++) {

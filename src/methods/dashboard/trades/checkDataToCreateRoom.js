@@ -15,6 +15,7 @@ const checkDataToCreateRoom = (form) => {
         room_id: (0, uuid_1.v4)(),
         status: false,
         active_users: [],
+        move_idx: 0,
     };
     for (let idx = 0; idx < form.length; idx++) {
         if (!form[idx].value) {
