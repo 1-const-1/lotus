@@ -715,7 +715,7 @@ app.post("/trade/room/user/index", (req, res) => {
 //////////////////////////////////////////////
 // SOCKET.IO START
 //////////////////////////////////////////////
-let timerIsRunning = false;
+let timers = [];
 ioServer.on("connection", (socket) => {
     socket.on("msg", (msg) => {
         console.log(msg);
@@ -723,6 +723,8 @@ ioServer.on("connection", (socket) => {
     socket.on("trade_room", (room) => {
         console.log(`room is: ${room}`);
         socket.join(room);
+        if (timers.findIndex((val) => val.name === room) < 0)
+            timers.push({ name: room, timer: 0, run: false });
     });
     socket.on("room_join_req", (data) => {
         console.log(data);
@@ -765,27 +767,38 @@ ioServer.on("connection", (socket) => {
         request.end();
     });
     socket.on("trade_room_timer_start", (data, time, socket_id) => {
-        let socketTimer = time;
-        console.log(socket_id);
-        const resInterval = setInterval(() => {
-            if (!socketTimer) {
-                const skSet = ioServer.sockets.adapter.rooms.get(data.room_id);
-                console.log("Set:", skSet);
-                const skList = [];
-                for (const val of skSet) {
-                    skList.push(val);
+        const roomTimer = timers.find((val) => val.name === data.room_id);
+        console.log(roomTimer);
+        if (roomTimer && roomTimer.timer <= 0 && roomTimer.run)
+            roomTimer.run = false;
+        if (roomTimer && !roomTimer.run && roomTimer.timer <= 0) {
+            roomTimer.timer = time;
+            roomTimer.run = true;
+            console.log(socket_id);
+            const resInterval = setInterval(() => {
+                if (!(roomTimer === null || roomTimer === void 0 ? void 0 : roomTimer.timer)) {
+                    const skSet = ioServer.sockets.adapter.rooms.get(data.room_id);
+                    console.log("Set:", skSet);
+                    const skList = [];
+                    for (const val of skSet) {
+                        skList.push(val);
+                    }
+                    console.log(skList);
+                    let skNextIdx = skList.findIndex((val) => val === socket_id);
+                    skNextIdx = skNextIdx + 1 > skList.length - 1 ? 0 : skNextIdx + 1;
+                    console.log("Found index: ", skNextIdx);
+                    ioServer.emit("trade_room_timer_end", data, skList[skNextIdx]);
+                    clearInterval(resInterval);
                 }
-                console.log(skList);
-                let skNextIdx = skList.findIndex((val) => val === socket_id);
-                skNextIdx = skNextIdx + 1 > skList.length - 1 ? 0 : skNextIdx + 1;
-                console.log("Found index: ", skNextIdx);
-                ioServer.emit("trade_room_timer_end", data, skList[skNextIdx]);
-                clearInterval(resInterval);
-            }
-            ioServer.to(data.room_id).emit("trade_room_timer_res", socketTimer);
-            --socketTimer;
-            console.log(socketTimer);
-        }, 1000);
+                ioServer.to(data.room_id).emit("trade_room_timer_res", roomTimer.timer);
+                --roomTimer.timer;
+                console.log(roomTimer.timer);
+            }, 1000);
+        }
+        else {
+            if (roomTimer)
+                roomTimer.timer = time;
+        }
     });
 });
 //////////////////////////////////////////////
