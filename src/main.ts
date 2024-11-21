@@ -866,6 +866,26 @@ app.post("/trade/room/user/index", (req, res)=> {
   });
 });
 
+app.post("/trade/room/session/status", (req, res)=> {
+  let body = "";
+
+  req.on("data", (chunk)=>{
+    body += chunk;
+  });
+
+  req.on("end", async ()=> {
+    const jData = JSON.parse(body);
+
+    jData.room_id = atob(jData.room_id);
+
+    const db = mongoClient.db("lotus");
+
+    await db.collection("trade_rooms").updateOne({room_id: jData.room_id}, {$set: {active_session: jData.active_session}});
+
+    res.end();
+  });
+});
+
 //////////////////////////////////////////////
 // APPLICATION END 
 //////////////////////////////////////////////
@@ -874,7 +894,7 @@ app.post("/trade/room/user/index", (req, res)=> {
 // SOCKET.IO START
 //////////////////////////////////////////////
 
-let timers : {name: string, timer: number, run: boolean}[] = [];
+let timers : {name: string, timer: number, max: number, run: boolean, stopped: boolean}[] = [];
 
 ioServer.on("connection", (socket) => {
 
@@ -886,7 +906,7 @@ ioServer.on("connection", (socket) => {
     console.log(`room is: ${room}`)
     socket.join(room);
     if (timers.findIndex((val)=> val.name === room) < 0)
-      timers.push({name: room, timer: 0, run: false});
+      timers.push({name: room, timer: 0, max: 60 * 15, run: false, stopped:false});
   });
 
   socket.on("room_join_req", (data)=> {
@@ -939,8 +959,10 @@ ioServer.on("connection", (socket) => {
     request.end();
   });
 
-  socket.on("trade_room_timer_start", (data, time, socket_id) => {
+  socket.on("trade_room_timer_start", (data: {room_id:string}, time:number, socket_id:string, stop:boolean = false) => {
     const roomTimer = timers.find((val)=> val.name === data.room_id);
+    if (roomTimer)
+      roomTimer.stopped = stop;
 
     console.log(roomTimer);
 
@@ -950,12 +972,12 @@ ioServer.on("connection", (socket) => {
     if (roomTimer && !roomTimer.run && roomTimer.timer <= 0) {
       roomTimer.timer = time;
       roomTimer.run = true;
-   
+    
       console.log(socket_id);
 
       const resInterval = setInterval(
         ()=> {
-          if (!roomTimer?.timer) {  
+          if (!roomTimer.timer && !roomTimer.stopped) {  
             const skSet = ioServer.sockets.adapter.rooms.get(data.room_id);
             console.log("Set:", skSet);
             
@@ -975,12 +997,19 @@ ioServer.on("connection", (socket) => {
             ioServer.emit("trade_room_timer_end", data, skList[skNextIdx]);
 
             clearInterval(resInterval);
+
+          } else if (roomTimer.stopped || !roomTimer.max) {
+            roomTimer.timer = 0;
+            roomTimer.run = false;
+
+            clearInterval(resInterval);
           }
 
           ioServer.to(data.room_id).emit("trade_room_timer_res", roomTimer.timer);
           --roomTimer.timer;
+          --roomTimer.max;
                 
-          console.log(roomTimer.timer);
+          console.log("Main timer: ", roomTimer.timer, " Bounds: ", roomTimer.max);
         }, 1000
       );
       
@@ -989,6 +1018,41 @@ ioServer.on("connection", (socket) => {
         roomTimer.timer = time;
     }
       
+  });
+
+  socket.on("trade_room_session_start_req", (data)=> {    
+    const request = http.request({
+      method: "POST",
+      host: "127.0.0.1",
+      port: 3000,
+      path: "/trade/room/session/status",
+      headers: {
+        "content-type": "application/json",
+      }
+    });
+
+    request.write(JSON.stringify({room_id: data.room_id, active_session: true}));
+    request.end();
+
+    ioServer.to(data.room_id).emit("trade_room_session_start_evt");
+
+  });
+
+  socket.on("trade_room_session_end_req", (data)=> {
+    const request = http.request({
+      method: "POST",
+      host: "127.0.0.1",
+      port: 3000,
+      path: "/trade/room/session/status",
+      headers: {
+        "content-type": "application/json",
+      }
+    });
+
+    request.write(JSON.stringify({room_id: data.room_id, active_session: false}));
+    request.end();
+
+    ioServer.to(data.room_id).emit("trade_room_session_end_evt");
   });
 
 });
