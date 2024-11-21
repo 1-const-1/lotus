@@ -1,0 +1,25 @@
+#dash-menu {
+  width: 0;
+  height: 100%;
+  border-right: 1px solid grey;
+  transition: width 0.3s;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.menu-list {
+  height: 100%;
+  border-right: 1px solid #b4b4b4;
+}
+
+.list-elm {
+  transition: 
+    background-color 0.05s,
+    border 0.05s;
+
+}
+
+.list-elm:hover {
+  border-right: 2px solid #44444460;
+  background-color: #b4b4b420;
+}
