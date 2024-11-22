@@ -1,13 +1,15 @@
 import React from "react";
 import WelcomeMsg from "./WelcomeMsg/WelcomeMsg";
 import Login from "./Login/Login";
-import { updateJsonToken } from "../app/EventCallbacks/updateClientToken";
+import "./style/LoginParticipant.css";
 
 const LoginParticipant = () => {
   return (
-    <div className="flex flex-row w-screen h-screen">
-      <WelcomeMsg />
-      <Login />
+    <div className="lf-container">
+      <div>
+        <WelcomeMsg />
+        <Login />
+      </div>
     </div>
   );
 }

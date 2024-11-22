@@ -2,9 +2,8 @@ import React from "react";
 
 const WelcomeMsg = () => {
   return (
-    <div>
-      <p>For trades</p>
-      <p>paticipant</p>
+    <div className="l-description">
+      <p>For trades paticipant</p>
     </div>
   );
 }

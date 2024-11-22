@@ -6,6 +6,8 @@ import ClientMenu from "./components/ClientMenu/ClientMenu";
 import ActiveUsers from "./components/ActiveUsers/ActiveUsers";
 import AdminMenu from "./components/AdminMenu/AdminMenu";
 
+import "./style/TradeRoom.css";
+
 const socket = io({autoConnect: false}).connect();
 
 
@@ -17,6 +19,7 @@ const TradeRoom = () => {
 
   const [isAdmin, setIsAdmin] = React.useState(false);
   const [roomInfo, setRoomInfo] = React.useState({} as any);
+  const [usersInfo, setUsersInfo] = React.useState();
   const [activeSession, setActiveSession] = React.useState(false);
 
   const [userId, setUserId] = React.useState("");             // <-- the current user
@@ -31,7 +34,7 @@ const TradeRoom = () => {
   
   let userIndex = React.useRef(0);
 
-  const [timer, setTimer] = React.useState(10);
+  const [timer, setTimer] = React.useState(30);
 
   React.useEffect(()=> {
     socket.emit("trade_room", ROOM_ID);
@@ -112,13 +115,36 @@ const TradeRoom = () => {
           }
         })
         .then(data=> {
-          console.log("User index: ", data);
           userIndex.current = data.user_index;
         })
         .catch(err=> console.log(err));
     }
 
   }, [joinedUser, leftUser, ROOM_ID, userId]);
+
+  React.useEffect(()=> {
+    if (ROOM_ID) {
+      fetch("/trade/room/users/info", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({room_id: ROOM_ID}),
+      })
+        .then(res=> {
+          if (res.ok) {
+            console.log("Response is OK!");
+            return res.json();
+          } else {
+            console.log("Response is not OK!");
+          }
+        })
+        .then(data=> {
+          setUsersInfo(data);
+        })
+        .catch(err=> console.log(err));
+    }
+  }, [ROOM_ID]);
 
   React.useEffect(()=> {
     socket.on("connect_new_user", (user_id : string)=> {
@@ -155,7 +181,6 @@ const TradeRoom = () => {
 
   React.useEffect(()=> {
     socket.on("user_make_move_evt", (jData)=> {
-      console.log("json:", jData.move_idx, " userIndex:", userIndex.current, " activeUser: ", activeUser);
       setActiveUser(jData.move_idx);
     });
 
@@ -177,14 +202,10 @@ const TradeRoom = () => {
 
   React.useEffect(()=> {
     socket.on("trade_room_timer_end", (data, socket_id)=> {
-      console.log(socket.id, socket_id)
-      console.log("(Active)/(Index): ", activeUser, userIndex);
-
       if (socket.id === socket_id) {
         socket.emit("user_make_move_req", {room_id: ROOM_ID, user_id: userId}, activeUser, activeUser);
-        socket.emit("trade_room_timer_start", {room_id: ROOM_ID}, 10, socket.id);
+        socket.emit("trade_room_timer_start", {room_id: ROOM_ID}, 30, socket.id);
       }
-
     });
 
     return ()=> {
@@ -214,33 +235,41 @@ const TradeRoom = () => {
 
   return mounted ? (
     <div>
-      <div>Room id: {params.get("id")}</div>
-      <div>User status is admin: {isAdmin ? "yes" : "no"}</div>
-      <div>Room name</div>
-      <ProductBlock rInfo={roomInfo} />
-      {usersMounted
-        ? <ActiveUsers 
-            rInfo={roomInfo}
-            user_id={userId} 
-            room_id={ROOM_ID}
-            socket={socket}
-            timer={timer}/>
-        : <p>Load active users...</p>}
-      {isAdmin 
-        ? <AdminMenu 
-            room_id={ROOM_ID}
-            socket={socket}
-            active_session={activeSession}/>
-        : <ClientMenu 
-            rData={roomInfo} 
-            ufBool={userForm}
-            ufSetter={showUserForm}
-            room_id={ROOM_ID}
-            user_id={userId}
-            socket={socket}
-            activeUser={activeUser}
-            user_index={userIndex.current}
-            active_session={activeSession} />}
+      <div className="info-container">
+        <div className="product-container">
+          <ProductBlock rInfo={roomInfo} />
+        </div>
+        <div className="users-container">
+          {usersMounted
+            ? <ActiveUsers 
+                rInfo={roomInfo}
+                user_id={userId} 
+                room_id={ROOM_ID}
+                socket={socket}
+                timer={timer}
+                usersInfo={usersInfo}
+                />
+            : <p>Load active users...</p>}
+        </div>
+      </div>
+      <div className="menu-container">
+        {isAdmin 
+          ? <AdminMenu 
+              room_id={ROOM_ID}
+              socket={socket}
+              active_session={activeSession}/>
+          : <ClientMenu 
+              rData={roomInfo} 
+              ufBool={userForm}
+              ufSetter={showUserForm}
+              room_id={ROOM_ID}
+              user_id={userId}
+              socket={socket}
+              activeUser={activeUser}
+              user_index={userIndex.current}
+              active_session={activeSession} />
+          }
+      </div>
     </div>
   ) : <p>Load room...</p>;
 }

@@ -1,5 +1,6 @@
 import React from "react";
 import RoomPrevieBlock from "./components/RoomPrevieBlock/RoomPrevieBlock";
+import "./style/UserInterfaceMain.css"
 
 const UserInterfaceMain = () => {
 
@@ -22,7 +23,7 @@ const UserInterfaceMain = () => {
     }, []);
 
   return (
-    <main>
+    <main className="list-rooms">
       <div>{!mounted ? "Still loading..." : 
             roomsList.current.map((val, idx)=> {
               return <RoomPrevieBlock roomData={val} key={idx} />;

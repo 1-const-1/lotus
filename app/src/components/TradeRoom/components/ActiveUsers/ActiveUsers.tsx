@@ -9,12 +9,13 @@ const ActiveUsers = (
     user_id: string|null,
     socket: Socket,
     timer: number,
+    usersInfo: any,
   }
 ) => {
 
   return(
     <div>
-    {props.rInfo.active_users
+    {props.rInfo.active_users && props.usersInfo
       ? props.rInfo.active_users.map((val:any, idx:any)=> {
         return(
           <ActiveForms
@@ -26,6 +27,7 @@ const ActiveUsers = (
             socket={props.socket}
             idx={idx}
             timer={props.timer}
+            userInfo={props.usersInfo[idx]}
             />
         );
       })

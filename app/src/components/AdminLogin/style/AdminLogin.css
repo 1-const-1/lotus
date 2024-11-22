@@ -1,0 +1,58 @@
+.lf-container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.lf-container > :first-child {
+  padding: 32px;
+  border: 1px solid #0002;
+  border-radius: 12px;
+  box-shadow: 2px 5px 0 #000;
+  font-size: 18px;
+  font-weight: 300;
+}
+
+.lf-container > :first-child > * {
+  padding: 8px 0;
+}
+
+.lf-container button {
+  width: 100%;
+  padding: 8px;
+  margin: 8px 0;
+  font-size: 24px;
+  border: none;
+  border-radius: 4px;
+  background-color: #4f84f7;
+  font-weight: 700;
+  color: #fefefe;
+}
+
+.lf-container h1 {
+  font-size: 24px;
+  text-align: center;
+}
+
+.lf-container input {
+  width: 100%;
+  padding: 8px;
+  margin: 8px 0;
+  font-size: 24px;
+  border: 1px solid #0002;
+  border-radius: 4px;
+}
+
+.l-description {
+  text-align: center;
+}
+
+#login-mode {
+  color: #4f84f7;
+  font-weight: 700;
+  user-select: none;
+  cursor: pointer;
+}

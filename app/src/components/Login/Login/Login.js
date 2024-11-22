@@ -15,7 +15,7 @@ const Login = () => {
     const negativeSpan = "negative";
     let mode = (0, react_1.useRef)(true);
     let formRoot = (0, react_1.useRef)(null);
-    return ((0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("form", { id: formId, onSubmit: (e) => { e.preventDefault(); }, children: mode.current ? (0, jsx_runtime_1.jsx)(AccountExists_1.default, { formId: formId }) : (0, jsx_runtime_1.jsx)(CreateNew_1.default, { formId: formId }) }), (0, jsx_runtime_1.jsxs)("div", { className: "flex flex-row ", children: [(0, jsx_runtime_1.jsxs)("p", { className: "mr-1", children: ["If you", (0, jsx_runtime_1.jsx)("span", { id: "negative", children: "do not" }), "have an account then"] }), (0, jsx_runtime_1.jsx)("a", { id: modeId, onClick: (e) => {
+    return ((0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("form", { id: formId, onSubmit: (e) => { e.preventDefault(); }, children: mode.current ? (0, jsx_runtime_1.jsx)(AccountExists_1.default, { formId: formId }) : (0, jsx_runtime_1.jsx)(CreateNew_1.default, { formId: formId }) }), (0, jsx_runtime_1.jsxs)("div", { className: "flex flex-row", children: [(0, jsx_runtime_1.jsxs)("p", { className: "mr-1", children: ["If you ", (0, jsx_runtime_1.jsx)("span", { id: "negative", children: "do not" }), " have an account then"] }), (0, jsx_runtime_1.jsx)("a", { id: modeId, onClick: (e) => {
                             e.preventDefault();
                             if (!formRoot.current) {
                                 formRoot.current = client_1.default.createRoot(document.getElementById(formId));
@@ -30,11 +30,10 @@ const Login = () => {
                             const statement = document.getElementById(negativeSpan);
                             const anchorMode = document.getElementById(modeId);
                             if (mode.current) {
-                                statement.textContent = " ";
                                 anchorMode.textContent = "Sign up";
                             }
                             else {
-                                statement.textContent = " do not ";
+                                statement.textContent = "do not";
                                 anchorMode.textContent = "Login";
                             }
                         }, children: "Sign up" })] })] }));

@@ -20,7 +20,6 @@ const CreateNew = (props: {formId:string}) => {
       <div>
         <button 
           type="submit"
-          className="p-3 bg-sky-500 font-bold text-base text-center text-white"
           onClick={() => {
             const form = document.getElementById(props.formId) as HTMLFormElement;
             createNewAccount(form);

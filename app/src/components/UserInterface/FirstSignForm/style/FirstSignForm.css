@@ -1,0 +1,51 @@
+.first-sign-form {
+  position: fixed;
+  background-color: transparent;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.first-sign-form > :first-child {
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  font-weight: 300;
+  font-size: 20px;
+  width: 360px;
+  border: 1px solid #0002;
+  padding: 16px;
+  text-align: center;
+}
+
+.first-sign-form > :first-child > div >* {
+  margin: 8px 0;
+  width: 100%;
+}
+
+.first-sign-form > :first-child select {
+  background-color: transparent;
+  border: 1px solid #0002;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.first-sign-form > :first-child input {
+  padding: 8px;
+  border: 1px solid #0002;
+  border-radius: 8px;
+}
+
+.first-sign-form > :first-child button {
+  border-radius: 8px;
+  padding: 8px;
+  background-color: #4f84f7;
+  width: 100%;
+  font-weight: 700;
+  color: #fefefe;
+}

@@ -12,7 +12,8 @@ const ClientForm = (
     rData:any, 
     socket:Socket, 
     joinBtn: HTMLButtonElement|null,
-    }
+    ufSetter: any,
+  }
   ) => {
   const fid = "_form_3";
   let roomData = [];
@@ -25,10 +26,11 @@ const ClientForm = (
   }
 
   return (
-    <div>
+    <div className="client-form">
       {
         !subClicked 
-        ? <form id={fid} onSubmit={e => e.preventDefault()}>
+        ? (<form id={fid} onSubmit={e => e.preventDefault()}>
+          <header>The form of participant</header>
         {roomData.map((val, idx)=> {
           if (![
             "product_name",
@@ -54,8 +56,6 @@ const ClientForm = (
         <div>
           <button 
             onClick={()=> {
-              console.log("clicked!");
-
               const f = new FormData(document.getElementById(fid) as HTMLFormElement);
               f.append("room_id", props.room_id!);
               f.append("user_id", props.user_id!);
@@ -82,8 +82,12 @@ const ClientForm = (
                 .catch(err=> console.log(err));
             }}
             >Submit</button>
+          <button
+            onClick={()=> {
+              props.ufSetter(false);
+            }}>Close</button>
         </div>
-      </form>
+      </form>)
       : <div></div>
       }
       

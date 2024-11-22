@@ -16,8 +16,8 @@ const ClientForm = (props) => {
     for (let key in props.rData) {
         roomData.push([key, props.rData[key]]);
     }
-    return ((0, jsx_runtime_1.jsx)("div", { children: !subClicked
-            ? (0, jsx_runtime_1.jsxs)("form", { id: fid, onSubmit: e => e.preventDefault(), children: [roomData.map((val, idx) => {
+    return ((0, jsx_runtime_1.jsx)("div", { className: "client-form", children: !subClicked
+            ? ((0, jsx_runtime_1.jsxs)("form", { id: fid, onSubmit: e => e.preventDefault(), children: [(0, jsx_runtime_1.jsx)("header", { children: "The form of participant" }), roomData.map((val, idx) => {
                         if (![
                             "product_name",
                             "description",
@@ -32,32 +32,33 @@ const ClientForm = (props) => {
                         ].find(v => v === val[0])) {
                             return ((0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("p", { children: val[0] }), (0, jsx_runtime_1.jsx)("input", { name: val[0], type: "text" })] }, idx));
                         }
-                    }), (0, jsx_runtime_1.jsx)("div", { children: (0, jsx_runtime_1.jsx)("button", { onClick: () => {
-                                console.log("clicked!");
-                                const f = new FormData(document.getElementById(fid));
-                                f.append("room_id", props.room_id);
-                                f.append("user_id", props.user_id);
-                                fetch("/trade/room/user/new", {
-                                    method: "POST",
-                                    body: f,
-                                })
-                                    .then(res => {
-                                    if (res.ok) {
-                                        console.log("Response is OK");
-                                        return res.text();
-                                    }
-                                    else {
-                                        console.log("Response is not OK");
-                                    }
-                                })
-                                    .then(() => {
-                                    joinToRoom(props.socket, props.room_id, props.user_id);
-                                    if (btn)
-                                        btn.disabled = true;
-                                    setSubClicked(true);
-                                })
-                                    .catch(err => console.log(err));
-                            }, children: "Submit" }) })] })
+                    }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("button", { onClick: () => {
+                                    const f = new FormData(document.getElementById(fid));
+                                    f.append("room_id", props.room_id);
+                                    f.append("user_id", props.user_id);
+                                    fetch("/trade/room/user/new", {
+                                        method: "POST",
+                                        body: f,
+                                    })
+                                        .then(res => {
+                                        if (res.ok) {
+                                            console.log("Response is OK");
+                                            return res.text();
+                                        }
+                                        else {
+                                            console.log("Response is not OK");
+                                        }
+                                    })
+                                        .then(() => {
+                                        joinToRoom(props.socket, props.room_id, props.user_id);
+                                        if (btn)
+                                            btn.disabled = true;
+                                        setSubClicked(true);
+                                    })
+                                        .catch(err => console.log(err));
+                                }, children: "Submit" }), (0, jsx_runtime_1.jsx)("button", { onClick: () => {
+                                    props.ufSetter(false);
+                                }, children: "Close" })] })] }))
             : (0, jsx_runtime_1.jsx)("div", {}) }));
 };
 exports.default = ClientForm;

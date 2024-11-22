@@ -3,6 +3,7 @@ import { Socket } from "socket.io-client";
 import InputElm from "./InputElm";
 import ChangeFormBtn from "./ChangeFormBtn";
 import SaveChangesBtn from "./SaveChagesBtn";
+import DivElm from "./DivElm";
 
 const ActiveForms = (
   props: {
@@ -13,6 +14,7 @@ const ActiveForms = (
     socket: Socket,
     idx: number,
     timer: number,
+    userInfo: any,
   }
 ) => {
   let arrElm = [] as JSX.Element[];
@@ -22,13 +24,29 @@ const ActiveForms = (
   const [offerInfo, setOfferInfo] = React.useState(props.userOfferInfo);
   const [rOnly, setReadOnly] = React.useState(true);
 
+  arrElm.push(
+      <div className="flex flex-row">
+        <div>{props.userInfo.company_type} {props.userInfo.company_name}</div>
+      </div>
+  );
+
   for (let key in offerInfo.offer) {
-    arrElm.push(
+    if (offerInfo.user_id === props.user_id) {
+      arrElm.push(
         <InputElm
           key={key}
           label={key}
           value={offerInfo.offer[key]}
           ro={rOnly} />);
+    } else {
+      arrElm.push(
+        <DivElm 
+          key={key}
+          label={key}
+          value={offerInfo.offer[key]}/>
+      )
+    }
+
     }
 
     if (offerInfo.user_id === props.user_id) {
@@ -49,11 +67,10 @@ const ActiveForms = (
     }
 
   return (
-    <div>
+    <div className="user-offer-form">
       <div id={tid}>{props.move_idx === props.idx ? `00:${props.timer}` : "Wait..."}</div>
       <form 
         id={fid}
-        className={props.move_idx === props.idx ? "bg-emerald-500" : "bg-gray-500"}
         onSubmit={e=> e.preventDefault()}>
         {arrElm
           ? arrElm.map((val, idx)=> {

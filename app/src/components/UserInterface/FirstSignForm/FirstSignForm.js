@@ -6,6 +6,7 @@ const CompanyTypes_1 = require("./CompanyTypes");
 const sendFirstSignForm_1 = require("./EventCallbacks/sendFirstSignForm");
 const updateClientToken_1 = require("../../app/EventCallbacks/updateClientToken");
 const checkFirstSignForm_1 = require("./EventCallbacks/checkFirstSignForm");
+require("./style/FirstSignForm.css");
 const FirstSignForm = () => {
     (0, react_1.useEffect)(() => {
         (0, updateClientToken_1.updateJsonToken)();
@@ -15,7 +16,7 @@ const FirstSignForm = () => {
     }, []);
     const formId = "participant-form";
     const cTypes = CompanyTypes_1.enCompanyTypes;
-    return ((0, jsx_runtime_1.jsx)("div", { children: (0, jsx_runtime_1.jsxs)("form", { id: formId, onSubmit: (e) => { e.preventDefault(); }, children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { htmlFor: "company-type" }), (0, jsx_runtime_1.jsx)("select", { name: "company_type", id: "company-type", children: cTypes.map((val, idx) => {
+    return ((0, jsx_runtime_1.jsx)("div", { className: "first-sign-form", children: (0, jsx_runtime_1.jsxs)("form", { id: formId, onSubmit: (e) => { e.preventDefault(); }, children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { htmlFor: "company-type" }), (0, jsx_runtime_1.jsx)("select", { name: "company_type", id: "company-type", children: cTypes.map((val, idx) => {
                                 if (val.short !== "other")
                                     return (0, jsx_runtime_1.jsxs)("option", { value: val.short, children: [val.short, " ", val.full] }, idx);
                                 else

@@ -1,0 +1,35 @@
+.list-rooms > :first-child {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.product-block {
+ margin: 16px;
+ font-size: 18px;
+ font-weight: 300;
+ border: 1px solid #0002;
+ border-radius: 12px;
+ padding: 16px;
+ width: 320px;
+}
+
+.product-block > header {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.product-block a {
+  width: 100%;
+  padding: 8px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 4px;
+  background-color: #4f84f7;
+  font-weight: 700;
+  color: #fefefe;
+}
+
+.product-block > * {
+  padding: 8px 0;
+}

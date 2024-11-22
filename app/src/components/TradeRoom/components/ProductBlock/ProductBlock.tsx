@@ -12,32 +12,30 @@ const ProductBlock = (props: {rInfo: any}) => {
   }
 
   return (
-    <div className="p-4 border-2">
+    <div className="product-block">
       {props.rInfo 
         ? roomData.map((val, idx)=> {
           if (val[0] === "product_name") {
             return (
               <div key={idx}>
-                <div>Product</div>
-                <h1>{val[1]}</h1>
+                <h1>Product</h1>
+                <p>{val[1]}</p>
               </div>
             );
           } else if (val[0] === "description") {
             return (
               <div key={idx}>
-                <div>Description</div>
-                <h1>{val[1]}</h1>
+                <h1>Description</h1>
+                <p>{val[1]}</p>
+                <h1>Peculiarities</h1>
               </div>
             );
           } else if (val[0] === "price") {
             return (
               <div key={idx}>
                 <div>
-                  <div>Price</div>
-                  <h1>{val[1]}</h1>
-                </div>
-                <div>
-                  Peculiarities
+                  <h1>Price</h1>
+                  <p>{val[1]}</p>
                 </div>
               </div>
               

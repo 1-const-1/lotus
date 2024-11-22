@@ -4,6 +4,8 @@ import { sendFirstSignForm } from "./EventCallbacks/sendFirstSignForm";
 import { updateJsonToken } from "../../app/EventCallbacks/updateClientToken";
 import { checkFirstSignForm } from "./EventCallbacks/checkFirstSignForm";
 
+import "./style/FirstSignForm.css";
+
 const FirstSignForm = () => {
 
   useEffect(()=> {
@@ -18,7 +20,7 @@ const FirstSignForm = () => {
   const cTypes = enCompanyTypes;
 
   return(
-    <div>
+    <div className="first-sign-form">
       <form id={formId} onSubmit={(e)=> {e.preventDefault();}}>
         <div>
           <label htmlFor="company-type"></label>

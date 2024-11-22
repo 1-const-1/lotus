@@ -605,7 +605,6 @@ app.post("/trade/room/user/new", (req, res) => {
                 }
             }
         }
-        console.log(uInfo);
         yield db.collection("trade_rooms").updateOne({ room_id: uInfo.room_id }, { $push: { active_users: uInfo } });
         res.end();
     }));
@@ -638,7 +637,6 @@ app.post("/trade/room/user/form_updated", (req, res) => {
             }
         }
         const db = mongo_1.mongoClient.db("lotus");
-        console.log(newUserInfo);
         yield db.collection("trade_rooms").updateOne({ room_id: atob(newUserInfo.room_id) }, { $set: { [`active_users.${newUserInfo.index}.offer`]: newUserInfo.offer } });
         res.end();
     }));
@@ -688,7 +686,6 @@ app.post("/trade/room/user/move", (req, res) => {
             }
         }
         yield db.collection("trade_rooms").updateOne({ room_id: jData.room_id }, { $set: { move_idx: newMove } });
-        console.log(`New move: ${newMove}`);
         res.json({ move_idx: newMove });
     }));
 });
@@ -722,6 +719,29 @@ app.post("/trade/room/session/status", (req, res) => {
         res.end();
     }));
 });
+app.post("/trade/room/users/info", (req, res) => {
+    let body = "";
+    req.on("data", (chunk) => {
+        body += chunk;
+    });
+    req.on("end", () => __awaiter(void 0, void 0, void 0, function* () {
+        const jData = JSON.parse(body);
+        jData.room_id = atob(jData.room_id);
+        const db = mongo_1.mongoClient.db("lotus");
+        const room = yield db.collection("trade_rooms").findOne({ room_id: jData.room_id });
+        if (room) {
+            const users = [];
+            for (let idx in room.active_users) {
+                const user = yield db.collection("users").findOne({ user_id: room.active_users[idx].user_id });
+                users.push(user ? user : {});
+            }
+            console.log(users);
+            return res.end(JSON.stringify(users));
+        }
+        res.writeHead(500, "Internal server error");
+        res.end();
+    }));
+});
 //////////////////////////////////////////////
 // APPLICATION END 
 //////////////////////////////////////////////
@@ -740,15 +760,12 @@ ioServer.on("connection", (socket) => {
             timers.push({ name: room, timer: 0, max: 60 * 15, run: false, stopped: false });
     });
     socket.on("room_join_req", (data) => {
-        console.log(data);
         ioServer.to(data.room_id).emit("connect_new_user", data.user_id);
     });
     socket.on("user_leaves_req", (data) => {
-        console.log(data);
         ioServer.to(data.room_id).emit("user_leaves_evt", data.user_id);
     });
     socket.on("user_changes_offer_req", (data) => {
-        console.log(data);
         ioServer.to(data.room_id).emit("user_changes_offer_evt", data.user_id);
     });
     socket.on("user_make_move_req", (data, moveIdx, socket_id) => {
@@ -768,7 +785,6 @@ ioServer.on("connection", (socket) => {
             });
             res.on("end", () => {
                 const jData = JSON.parse(body);
-                console.log(jData);
                 ioServer.to(data.room_id).emit("user_make_move_evt", jData);
             });
         });
@@ -789,19 +805,15 @@ ioServer.on("connection", (socket) => {
         if (roomTimer && !roomTimer.run && roomTimer.timer <= 0) {
             roomTimer.timer = time;
             roomTimer.run = true;
-            console.log(socket_id);
             const resInterval = setInterval(() => {
                 if (!roomTimer.timer && !roomTimer.stopped) {
                     const skSet = ioServer.sockets.adapter.rooms.get(data.room_id);
-                    console.log("Set:", skSet);
                     const skList = [];
                     for (const val of skSet) {
                         skList.push(val);
                     }
-                    console.log(skList);
                     let skNextIdx = skList.findIndex((val) => val === socket_id);
                     skNextIdx = skNextIdx + 1 > skList.length - 1 ? 0 : skNextIdx + 1;
-                    console.log("Found index: ", skNextIdx);
                     ioServer.emit("trade_room_timer_end", data, skList[skNextIdx]);
                     clearInterval(resInterval);
                 }

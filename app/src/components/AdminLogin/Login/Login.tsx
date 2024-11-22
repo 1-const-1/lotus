@@ -20,7 +20,7 @@ const Login = () => {
         {mode.current ? <AccountExists formId={formId}/> : <CreateNew formId={formId} />}
       </form>
       <div className="flex flex-row ">
-        <p className="mr-1">If you<span id="negative">do not</span>have an account then</p>
+        <p className="mr-1">If you <span id="negative">do not</span> have an account then</p>
         <a id={modeId} onClick={(e) => {
           e.preventDefault();
 
@@ -39,10 +39,9 @@ const Login = () => {
           const anchorMode = document.getElementById(modeId)!;
 
           if (mode.current) {
-            statement.textContent = " ";
             anchorMode.textContent = "Sign up";
           } else {
-            statement.textContent = " do not ";
+            statement.textContent = "do not";
             anchorMode.textContent = "Login";
           }
 

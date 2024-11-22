@@ -45,7 +45,7 @@ const ClientMenu = (
                 
                 if (props.room_id && props.user_id) {
                   props.socket.emit("user_make_move_req", {room_id: props.room_id!, user_id: props.user_id!}, props.activeUser, props.socket.id);
-                  props.socket.emit("trade_room_timer_start", {room_id: props.room_id}, 10, props.socket.id);
+                  props.socket.emit("trade_room_timer_start", {room_id: props.room_id}, 30, props.socket.id);
                   props.socket.emit("user_leaves_req", {room_id: props.room_id, user_id: props.user_id});
                 }
 
@@ -58,7 +58,7 @@ const ClientMenu = (
         }}>Leave</button>
       <button onClick={()=> {
           props.socket.emit("user_make_move_req", {room_id: props.room_id!, user_id: props.user_id!}, props.activeUser, props.socket.id);
-          props.socket.emit("trade_room_timer_start", {room_id: props.room_id}, 10, props.socket.id);
+          props.socket.emit("trade_room_timer_start", {room_id: props.room_id}, 30, props.socket.id);
       }} disabled={props.active_session && (props.activeUser === props.user_index) ? false : true}>Move</button>
     </div>
     <div>
@@ -69,6 +69,7 @@ const ClientMenu = (
           rData={props.rData} 
           socket={props.socket} 
           joinBtn={btn.current}
+          ufSetter={props.ufSetter}
           /> 
       : <></> }
     </div>

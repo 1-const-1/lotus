@@ -11,6 +11,7 @@ const ProductBlock_1 = __importDefault(require("./components/ProductBlock/Produc
 const ClientMenu_1 = __importDefault(require("./components/ClientMenu/ClientMenu"));
 const ActiveUsers_1 = __importDefault(require("./components/ActiveUsers/ActiveUsers"));
 const AdminMenu_1 = __importDefault(require("./components/AdminMenu/AdminMenu"));
+require("./style/TradeRoom.css");
 const socket = (0, socket_io_client_1.default)({ autoConnect: false }).connect();
 const TradeRoom = () => {
     const location = (0, react_router_dom_1.useLocation)();
@@ -18,6 +19,7 @@ const TradeRoom = () => {
     const ROOM_ID = params.get("id");
     const [isAdmin, setIsAdmin] = react_1.default.useState(false);
     const [roomInfo, setRoomInfo] = react_1.default.useState({});
+    const [usersInfo, setUsersInfo] = react_1.default.useState();
     const [activeSession, setActiveSession] = react_1.default.useState(false);
     const [userId, setUserId] = react_1.default.useState(""); // <-- the current user
     const [userForm, showUserForm] = react_1.default.useState(false);
@@ -28,7 +30,7 @@ const TradeRoom = () => {
     const [changedUserOffer, setChangedUserOffer] = react_1.default.useState(""); // <-- when a user (consumer) decided to change data
     const [activeUser, setActiveUser] = react_1.default.useState(0); // <- this hook helps to identify the following statement: who is making move right now?
     let userIndex = react_1.default.useRef(0);
-    const [timer, setTimer] = react_1.default.useState(10);
+    const [timer, setTimer] = react_1.default.useState(30);
     react_1.default.useEffect(() => {
         socket.emit("trade_room", ROOM_ID);
     }, []);
@@ -104,12 +106,35 @@ const TradeRoom = () => {
                 }
             })
                 .then(data => {
-                console.log("User index: ", data);
                 userIndex.current = data.user_index;
             })
                 .catch(err => console.log(err));
         }
     }, [joinedUser, leftUser, ROOM_ID, userId]);
+    react_1.default.useEffect(() => {
+        if (ROOM_ID) {
+            fetch("/trade/room/users/info", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ room_id: ROOM_ID }),
+            })
+                .then(res => {
+                if (res.ok) {
+                    console.log("Response is OK!");
+                    return res.json();
+                }
+                else {
+                    console.log("Response is not OK!");
+                }
+            })
+                .then(data => {
+                setUsersInfo(data);
+            })
+                .catch(err => console.log(err));
+        }
+    }, [ROOM_ID]);
     react_1.default.useEffect(() => {
         socket.on("connect_new_user", (user_id) => {
             console.log(`new user has just joined: ${user_id}`);
@@ -139,7 +164,6 @@ const TradeRoom = () => {
     }, []);
     react_1.default.useEffect(() => {
         socket.on("user_make_move_evt", (jData) => {
-            console.log("json:", jData.move_idx, " userIndex:", userIndex.current, " activeUser: ", activeUser);
             setActiveUser(jData.move_idx);
         });
         return () => {
@@ -156,11 +180,9 @@ const TradeRoom = () => {
     }, []);
     react_1.default.useEffect(() => {
         socket.on("trade_room_timer_end", (data, socket_id) => {
-            console.log(socket.id, socket_id);
-            console.log("(Active)/(Index): ", activeUser, userIndex);
             if (socket.id === socket_id) {
                 socket.emit("user_make_move_req", { room_id: ROOM_ID, user_id: userId }, activeUser, activeUser);
-                socket.emit("trade_room_timer_start", { room_id: ROOM_ID }, 10, socket.id);
+                socket.emit("trade_room_timer_start", { room_id: ROOM_ID }, 30, socket.id);
             }
         });
         return () => {
@@ -183,10 +205,10 @@ const TradeRoom = () => {
             socket.off("trade_room_session_end_evt");
         };
     }, []);
-    return mounted ? ((0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsxs)("div", { children: ["Room id: ", params.get("id")] }), (0, jsx_runtime_1.jsxs)("div", { children: ["User status is admin: ", isAdmin ? "yes" : "no"] }), (0, jsx_runtime_1.jsx)("div", { children: "Room name" }), (0, jsx_runtime_1.jsx)(ProductBlock_1.default, { rInfo: roomInfo }), usersMounted
-                ? (0, jsx_runtime_1.jsx)(ActiveUsers_1.default, { rInfo: roomInfo, user_id: userId, room_id: ROOM_ID, socket: socket, timer: timer })
-                : (0, jsx_runtime_1.jsx)("p", { children: "Load active users..." }), isAdmin
-                ? (0, jsx_runtime_1.jsx)(AdminMenu_1.default, { room_id: ROOM_ID, socket: socket, active_session: activeSession })
-                : (0, jsx_runtime_1.jsx)(ClientMenu_1.default, { rData: roomInfo, ufBool: userForm, ufSetter: showUserForm, room_id: ROOM_ID, user_id: userId, socket: socket, activeUser: activeUser, user_index: userIndex.current, active_session: activeSession })] })) : (0, jsx_runtime_1.jsx)("p", { children: "Load room..." });
+    return mounted ? ((0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsxs)("div", { className: "info-container", children: [(0, jsx_runtime_1.jsx)("div", { className: "product-container", children: (0, jsx_runtime_1.jsx)(ProductBlock_1.default, { rInfo: roomInfo }) }), (0, jsx_runtime_1.jsx)("div", { className: "users-container", children: usersMounted
+                            ? (0, jsx_runtime_1.jsx)(ActiveUsers_1.default, { rInfo: roomInfo, user_id: userId, room_id: ROOM_ID, socket: socket, timer: timer, usersInfo: usersInfo })
+                            : (0, jsx_runtime_1.jsx)("p", { children: "Load active users..." }) })] }), (0, jsx_runtime_1.jsx)("div", { className: "menu-container", children: isAdmin
+                    ? (0, jsx_runtime_1.jsx)(AdminMenu_1.default, { room_id: ROOM_ID, socket: socket, active_session: activeSession })
+                    : (0, jsx_runtime_1.jsx)(ClientMenu_1.default, { rData: roomInfo, ufBool: userForm, ufSetter: showUserForm, room_id: ROOM_ID, user_id: userId, socket: socket, activeUser: activeUser, user_index: userIndex.current, active_session: activeSession }) })] })) : (0, jsx_runtime_1.jsx)("p", { children: "Load room..." });
 };
 exports.default = TradeRoom;
